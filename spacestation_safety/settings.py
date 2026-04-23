@@ -7,7 +7,14 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-key")
 
 DEBUG = True  # for now
 
-ALLOWED_HOSTS = ["space-station-safety-ai.onrender.com"]
+render_external_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
+ALLOWED_HOSTS = [
+    "space-station-safety-ai.onrender.com",
+    "127.0.0.1",
+    "localhost",
+]
+if render_external_hostname:
+    ALLOWED_HOSTS.append(render_external_hostname)
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -20,6 +27,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -66,6 +74,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

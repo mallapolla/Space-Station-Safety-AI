@@ -121,6 +121,11 @@
         <h3>Recent Detection History</h3>
         <a class="text-link" href="{% url 'detector:history' %}">View full history</a>
     </div>
+    {% if not stats.database_ready %}
+        <p class="status-inline warn">
+            Database tables are not ready on this deployment yet. Run Django migrations on Render to enable history and dashboard counters.
+        </p>
+    {% endif %}
     <div class="table-wrap">
         <table>
             <thead>

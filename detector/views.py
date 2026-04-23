@@ -3,6 +3,7 @@ from pathlib import Path
 
 from django.contrib import messages
 from django.conf import settings
+from django.db import OperationalError, ProgrammingError
 from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -10,14 +11,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .forms import ImageUploadForm, VideoUploadForm
-from .ml.predict_image import run_image_detection
-from .ml.predict_live import generate_mjpeg_stream, process_browser_frame
-from .ml.predict_video import run_video_detection
 from .models import DetectionResult, LiveSession, UploadedMedia
 
 
 def home(request):
-    recent_results = DetectionResult.objects.select_related("uploaded_media").order_by("-created_at")[:5]
+    recent_results = []
     supported_objects = [
         "Oxygen Tank",
         "Nitrogen Tank",
@@ -27,12 +25,23 @@ def home(request):
         "Helmet",
         "Safety Tool",
     ]
-    stats = {
-        "total_uploads": UploadedMedia.objects.count(),
-        "total_results": DetectionResult.objects.count(),
-        "live_sessions": LiveSession.objects.count(),
-        "model_ready": Path(settings.YOLO_MODEL_PATH).exists(),
-    }
+    try:
+        recent_results = DetectionResult.objects.select_related("uploaded_media").order_by("-created_at")[:5]
+        stats = {
+            "total_uploads": UploadedMedia.objects.count(),
+            "total_results": DetectionResult.objects.count(),
+            "live_sessions": LiveSession.objects.count(),
+            "database_ready": True,
+            "model_ready": Path(settings.YOLO_MODEL_PATH).exists(),
+        }
+    except (OperationalError, ProgrammingError):
+        stats = {
+            "total_uploads": 0,
+            "total_results": 0,
+            "live_sessions": 0,
+            "database_ready": False,
+            "model_ready": Path(settings.YOLO_MODEL_PATH).exists(),
+        }
     return render(
         request,
         "detector/home.html",
@@ -59,6 +68,8 @@ def live_detection_page(request):
 
 
 def image_detection_page(request):
+    from .ml.predict_image import run_image_detection
+
     form = ImageUploadForm(request.POST or None, request.FILES or None)
     context = {"form": form}
 
@@ -85,6 +96,8 @@ def image_detection_page(request):
 
 
 def video_detection_page(request):
+    from .ml.predict_video import run_video_detection
+
     form = VideoUploadForm(request.POST or None, request.FILES or None)
     context = {"form": form}
 
@@ -112,7 +125,11 @@ def video_detection_page(request):
 
 @require_GET
 def history_page(request):
-    results = DetectionResult.objects.select_related("uploaded_media").order_by("-created_at")
+    try:
+        results = DetectionResult.objects.select_related("uploaded_media").order_by("-created_at")
+    except (OperationalError, ProgrammingError):
+        results = []
+        messages.warning(request, "Database tables are not ready yet. Run migrations on the server.")
     return render(request, "detector/history.html", {"results": results})
 
 
@@ -146,6 +163,8 @@ def stop_live_session(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def live_frame_api(request):
+    from .ml.predict_live import process_browser_frame
+
     try:
         payload = json.loads(request.body.decode("utf-8"))
         frame_data = payload.get("frame", "")
@@ -158,6 +177,8 @@ def live_frame_api(request):
 
 @require_GET
 def live_mjpeg_stream(request):
+    from .ml.predict_live import generate_mjpeg_stream
+
     track_enabled = request.GET.get("track") == "1"
     stream = generate_mjpeg_stream(enable_tracking=track_enabled)
     return StreamingHttpResponse(
