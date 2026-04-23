@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Video Detection | Space Station Safety{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Video Detection</p>
+        <h2>Upload a Video for Frame-by-Frame YOLO Detection</h2>
+        <p class="lead">Each frame is processed, annotated, and saved as a new output video in the media folder.</p>
+    </div>
+</section>
+
+<section class="card-grid">
+    <article class="glass-card">
+        <h3>Upload Video</h3>
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="button primary" type="submit">Run Video Detection</button>
+        </form>
+    </article>
+
+    {% if detection_result %}
+    <article class="glass-card">
+        <h3>Processed Video Result</h3>
+        <video class="result-preview" controls>
+            <source src="{{ detection_result.result_file.url }}" type="video/mp4">
+            Your browser does not support video playback.
+        </video>
+        <div class="stats-grid">
+            <div class="metric-card">
+                <span>Total Frames</span>
+                <strong>{{ video_stats.frame_count }}</strong>
+            </div>
+            <div class="metric-card">
+                <span>Average Confidence</span>
+                <strong>{{ video_stats.avg_confidence|floatformat:2 }}</strong>
+            </div>
+            <div class="metric-card">
+                <span>Video FPS</span>
+                <strong>{{ video_stats.fps|floatformat:2 }}</strong>
+            </div>
+        </div>
+        <div class="badge-grid">
+            {% for item in video_stats.detected_objects %}
+                <span class="neon-badge">{{ item }}</span>
+            {% endfor %}
+        </div>
+        <a class="button secondary" href="{{ detection_result.result_file.url }}">Download Processed Video</a>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

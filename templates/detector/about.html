@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}About | Space Station Safety{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">About The Project</p>
+        <h2>How This Real-Time Detection System Works</h2>
+        <p class="lead">This student-friendly project combines Django for the web application, OpenCV for image and video processing, and Ultralytics YOLO for object detection.</p>
+    </div>
+</section>
+
+<section class="card-grid">
+    <article class="glass-card">
+        <h3>Browser Webcam Frame API Method</h3>
+        <ul class="feature-list">
+            <li>Browser asks permission for webcam access using JavaScript</li>
+            <li>Frames are captured from a hidden video element using a canvas</li>
+            <li>Frames are sent to Django using fetch and JSON</li>
+            <li>Django runs YOLO inference and returns an annotated frame</li>
+            <li>The page updates the preview continuously for live detection</li>
+        </ul>
+    </article>
+
+    <article class="glass-card">
+        <h3>OpenCV Plus Django MJPEG Method</h3>
+        <ul class="feature-list">
+            <li>Django opens the webcam directly with OpenCV</li>
+            <li>Each frame is annotated on the backend</li>
+            <li>Frames are streamed as MJPEG to an image tag on the page</li>
+            <li>This approach is easier to explain and often more stable for a student project</li>
+        </ul>
+    </article>
+
+    <article class="glass-card">
+        <h3>Recommendation</h3>
+        <p class="muted-text">
+            For a polished web experience, use the browser webcam method. For easy demonstration and fewer frontend issues,
+            the OpenCV MJPEG streaming method is usually the easiest and most stable student-project option.
+        </p>
+    </article>
+</section>
+{% endblock %}

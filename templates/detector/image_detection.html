@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Image Detection | Space Station Safety{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Image Detection</p>
+        <h2>Upload a Space Station Safety Image</h2>
+        <p class="lead">The backend saves the original file, runs YOLO on it, stores the annotated result, and records detection history in SQLite.</p>
+    </div>
+</section>
+
+<section class="card-grid">
+    <article class="glass-card">
+        <h3>Upload Image</h3>
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="button primary" type="submit">Run Image Detection</button>
+        </form>
+    </article>
+
+    {% if detection_result %}
+    <article class="glass-card">
+        <h3>Detection Result</h3>
+        <img class="result-preview" src="{{ detection_result.result_file.url }}" alt="Detected image output">
+        <div class="stats-grid">
+            <div class="metric-card">
+                <span>Objects</span>
+                <strong>{{ image_stats.frame_count }}</strong>
+            </div>
+            <div class="metric-card">
+                <span>Average Confidence</span>
+                <strong>{{ image_stats.avg_confidence|floatformat:2 }}</strong>
+            </div>
+            <div class="metric-card">
+                <span>Processed FPS</span>
+                <strong>{{ image_stats.fps|floatformat:2 }}</strong>
+            </div>
+        </div>
+        <div class="badge-grid">
+            {% for item in image_stats.detected_objects %}
+                <span class="neon-badge">{{ item }}</span>
+            {% endfor %}
+        </div>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Space Station Safety{% endblock %}
+
+{% block content %}
+<section class="mission-hero">
+    <div class="mission-copy hero-card">
+        <p class="eyebrow">Computer Vision Project</p>
+        <h2>Real-Time Space Station Safety Object Detection System</h2>
+        <p class="hero-highlight">AI-Powered. Real-Time. Safety-Critical.</p>
+        <p class="lead">
+            A futuristic detection console for live webcam, image, and video analysis. Plug in your YOLO model,
+            point a camera at any scene, and the system will identify objects, draw bounding boxes, and stream
+            detection metrics in real time.
+        </p>
+        <div class="hero-actions">
+            <a class="button primary" href="{% url 'detector:live_detection' %}">Launch Live Detection</a>
+            <a class="button secondary" href="{% url 'detector:image_detection' %}">Test With Image</a>
+        </div>
+        <div class="feature-strip">
+            <span class="feature-chip">Real-Time Inference</span>
+            <span class="feature-chip">High Accuracy</span>
+            <span class="feature-chip">Live Video Detection</span>
+            <span class="feature-chip">Mission Safety</span>
+        </div>
+    </div>
+
+    <div class="hero-card hero-visual">
+        <div class="window-frame photo-window" data-parallax="8">
+            <div class="window-photo image-spacewalk orbit-photo-motion"></div>
+            <div class="window-glow"></div>
+            <div class="window-stars"></div>
+            <div class="window-orbit"></div>
+            <div class="station-frame">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="hero-photo-strip">
+            <div class="photo-card horizon-card" data-parallax="5">
+                <div class="photo-card-image image-horizon earth-drift-motion"></div>
+                <div class="photo-card-copy">
+                    <span>Orbital Visual</span>
+                    <strong>Earth Horizon Drift</strong>
+                </div>
+            </div>
+        </div>
+        <div class="status-panel">
+            <div class="metric-card">
+                <span>Model Status</span>
+                <strong>{% if stats.model_ready %}READY{% else %}MISSING{% endif %}</strong>
+            </div>
+            <div class="metric-card">
+                <span>Results Saved</span>
+                <strong>{{ stats.total_results }}</strong>
+            </div>
+            <div class="metric-card">
+                <span>Live Sessions</span>
+                <strong>{{ stats.live_sessions }}</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="card-grid dashboard-grid">
+    <article class="glass-card">
+        <div class="section-heading">
+            <h3>Objects Detected</h3>
+            <span class="mode-tag">YOLO</span>
+        </div>
+        <div class="badge-grid">
+            {% for item in supported_objects %}
+                <span class="neon-badge">{{ item }}</span>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="glass-card">
+        <div class="section-heading">
+            <h3>AI Processing Pipeline</h3>
+            <span class="mode-tag alt">Realtime</span>
+        </div>
+        <div class="pipeline-grid">
+            <div class="pipeline-step">Frame Capture</div>
+            <div class="pipeline-step">YOLO Inference</div>
+            <div class="pipeline-step">Object Detection</div>
+            <div class="pipeline-step">Results & Analytics</div>
+        </div>
+    </article>
+
+    <article class="glass-card">
+        <h3>Detection Modes</h3>
+        <ul class="feature-list">
+            <li>Browser webcam API live detection</li>
+            <li>OpenCV MJPEG webcam stream fallback</li>
+            <li>Image upload with annotated preview</li>
+            <li>Video upload with processed downloadable result</li>
+            <li>History tracking in SQLite database</li>
+        </ul>
+    </article>
+
+    <article class="glass-card">
+        <h3>Deployment Check</h3>
+        <p class="muted-text">
+            Model file:
+            <code>{{ model_path }}</code>
+        </p>
+        <p class="status-inline {% if stats.model_ready %}ok{% else %}warn{% endif %}">
+            {% if stats.model_ready %}
+                YOLO weights are available. Live detection can run with your configured model.
+            {% else %}
+                Add a YOLO weights file at this path to enable true real-time object detection.
+            {% endif %}
+        </p>
+    </article>
+</section>
+
+<section class="glass-card">
+    <div class="section-heading">
+        <h3>Recent Detection History</h3>
+        <a class="text-link" href="{% url 'detector:history' %}">View full history</a>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Media Type</th>
+                    <th>Detected Objects</th>
+                    <th>Average Confidence</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in recent_results %}
+                    <tr>
+                        <td>{{ result.id }}</td>
+                        <td>{{ result.uploaded_media.media_type|default:"Live" }}</td>
+                        <td>{{ result.detected_objects|default:"No objects saved" }}</td>
+                        <td>{{ result.avg_confidence|floatformat:2 }}</td>
+                        <td>{{ result.created_at }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">No detection history yet. Run your first prediction from the image or video page.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

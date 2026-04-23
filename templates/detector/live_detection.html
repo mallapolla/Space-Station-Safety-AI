@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Live Detection | Space Station Safety{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Real-Time Monitoring</p>
+        <h2>Live Webcam Detection Dashboard</h2>
+        <p class="lead">A real-time console for webcam inference, bounding-box preview, tracking, and live object metrics.</p>
+    </div>
+</section>
+
+<section class="live-console">
+    <article class="glass-card live-primary">
+        <div class="section-heading">
+            <h3>Browser Webcam API Method</h3>
+            <span class="mode-tag">Recommended</span>
+        </div>
+        <p class="status-inline {% if model_ready %}ok{% else %}warn{% endif %}">
+            {% if model_ready %}
+                Detection model ready at <code>{{ model_path }}</code>
+            {% else %}
+                Model missing at <code>{{ model_path }}</code>. Add your YOLO weights before starting live detection.
+            {% endif %}
+        </p>
+        <p class="muted-text">JavaScript opens your webcam, captures frames from a hidden video element, sends them to Django, receives annotated frames, and updates the preview continuously.</p>
+        <div class="button-row">
+            <button id="startLiveBtn" class="button primary" type="button">Start Live Detection</button>
+            <button id="stopLiveBtn" class="button danger" type="button" disabled>Stop Live Detection</button>
+        </div>
+        <div class="control-row">
+            <label class="checkbox-label">
+                <input type="checkbox" id="trackingToggle">
+                Enable tracking
+            </label>
+        </div>
+        <div class="video-panel">
+            <div class="panel-overlay panel-overlay-top">
+                <span>Feed A</span>
+                <span id="feedModeLabel">Browser Camera</span>
+            </div>
+            <video id="liveVideo" autoplay playsinline muted class="hidden"></video>
+            <canvas id="captureCanvas" class="hidden"></canvas>
+            <img id="annotatedFrame" alt="Live detection output preview">
+            <div class="panel-scanlines"></div>
+        </div>
+        <div class="stats-grid">
+            <div class="metric-card">
+                <span>FPS</span>
+                <strong id="fpsValue">0.00</strong>
+            </div>
+            <div class="metric-card">
+                <span>Objects</span>
+                <strong id="objectCount">0</strong>
+            </div>
+            <div class="metric-card">
+                <span>Confidence</span>
+                <strong id="avgConfidence">0.00</strong>
+            </div>
+        </div>
+        <div class="stats-grid secondary-stats">
+            <div class="metric-card">
+                <span>Top Object</span>
+                <strong id="topObject">NONE</strong>
+            </div>
+            <div class="metric-card">
+                <span>Tracking</span>
+                <strong id="trackingStatus">OFF</strong>
+            </div>
+            <div class="metric-card">
+                <span>Live State</span>
+                <strong id="liveStateValue">IDLE</strong>
+            </div>
+        </div>
+        <div id="detectedObjectsList" class="badge-grid"></div>
+        <div id="detectionCards" class="detection-cards"></div>
+        <p id="liveStatus" class="status-text">Live detection is idle.</p>
+    </article>
+
+    <article class="glass-card live-secondary">
+        <div class="section-heading">
+            <h3>OpenCV MJPEG Stream Method</h3>
+            <span class="mode-tag alt">Fallback</span>
+        </div>
+        <div class="orbital-preview-card" data-parallax="6">
+            <div class="orbital-preview-image image-horizon earth-drift-motion"></div>
+            <div class="orbital-preview-copy">
+                <span>Exterior Station View</span>
+                <strong>Mission Orbit Atmosphere</strong>
+            </div>
+        </div>
+        <p class="muted-text">Django opens the laptop webcam with OpenCV and streams annotated JPEG frames through an MJPEG endpoint. This is easier to explain and often more stable for student demos.</p>
+        <div class="button-row">
+            <button id="startMjpegBtn" class="button secondary" type="button">Start MJPEG Stream</button>
+            <button id="stopMjpegBtn" class="button danger" type="button" disabled>Stop MJPEG Stream</button>
+        </div>
+        <div class="stream-panel">
+            <div class="panel-overlay panel-overlay-top">
+                <span>Feed B</span>
+                <span>MJPEG Stream</span>
+            </div>
+            <img id="mjpegStream" alt="MJPEG live detection stream">
+            <div class="panel-scanlines"></div>
+        </div>
+        <ul class="feature-list">
+            <li>Less frontend logic</li>
+            <li>Better for quick college project demonstrations</li>
+            <li>Needs server-side webcam access on the same machine</li>
+        </ul>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.liveDetectionConfig = {
+        startUrl: "{% url 'detector:start_live_session' %}",
+        stopUrl: "{% url 'detector:stop_live_session' %}",
+        frameUrl: "{% url 'detector:live_frame_api' %}",
+        mjpegUrl: "{% url 'detector:live_mjpeg_stream' %}",
+        csrfToken: "{{ csrf_token }}"
+    };
+</script>
+<script src="{% static 'js/live_detection.js' %}"></script>
+{% endblock %}

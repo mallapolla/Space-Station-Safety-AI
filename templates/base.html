@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Space Station Safety Detection{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="space-backdrop" aria-hidden="true">
+        <div class="global-earth-photo"></div>
+        <div class="global-spacewash"></div>
+        <div class="space-nebula nebula-one"></div>
+        <div class="space-nebula nebula-two"></div>
+        <div class="space-grid"></div>
+        <div class="planet-horizon"></div>
+        <div class="station-truss">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="astronaut-orbit-path">
+            <div class="astronaut-orbit-anchor">
+                <div class="global-astronaut-sprite"></div>
+            </div>
+        </div>
+        <div class="orbital-ring ring-one"></div>
+        <div class="orbital-ring ring-two"></div>
+        <div class="floating-satellite satellite-one">
+            <span></span>
+            <span></span>
+        </div>
+        <div class="floating-satellite satellite-two">
+            <span></span>
+            <span></span>
+        </div>
+        <canvas id="starfieldCanvas" class="starfield-canvas"></canvas>
+    </div>
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div>
+                <p class="sidebar-kicker">Computer Vision Project</p>
+                <h1>Space Station Safety AI</h1>
+                <p class="sidebar-text">Real-time safety object detection for futuristic mission environments.</p>
+            </div>
+            <nav class="nav-links">
+                <a href="{% url 'detector:home' %}">Home</a>
+                <a href="{% url 'detector:live_detection' %}">Live Detection</a>
+                <a href="{% url 'detector:image_detection' %}">Image Upload</a>
+                <a href="{% url 'detector:video_detection' %}">Video Upload</a>
+                <a href="{% url 'detector:history' %}">History</a>
+                <a href="{% url 'detector:about' %}">About</a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Model path</p>
+                <code>models/best.pt</code>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            {% if messages %}
+                <div class="message-stack">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <script src="{% static 'js/space_scene.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
